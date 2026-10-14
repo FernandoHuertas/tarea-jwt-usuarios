@@ -18,6 +18,26 @@ export const jsonResponse = (description, schema) => ({
 
 export const errorResponse = (description) => jsonResponse(description, { $ref: '#/components/schemas/Error' });
 
+// Marca todas las operaciones de los paths como protegidas y les agrega la respuesta 401.
+// Es el equivalente de requireAuth en la documentación.
+export function secure(paths) {
+  const result = {};
+  for (const [path, item] of Object.entries(paths)) {
+    result[path] = {};
+    for (const [key, value] of Object.entries(item)) {
+      result[path][key] =
+        key === 'parameters'
+          ? value
+          : {
+              ...value,
+              security: [{ bearerAuth: [] }],
+              responses: { ...value.responses, 401: errorResponse('Token faltante, inválido o expirado') },
+            };
+    }
+  }
+  return result;
+}
+
 export const idParam = {
   name: 'id',
   in: 'path',
