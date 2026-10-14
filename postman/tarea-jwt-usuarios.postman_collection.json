@@ -398,6 +398,16 @@
           "name": "Listar tareas con token mal formado (401)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Valor que no tiene la forma header.payload.firma de un JWT.",
+                  "pm.variables.set('tokenMalFormado', 'esto-no-es-un-jwt');"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -412,7 +422,7 @@
           "request": {
             "auth": {
               "type": "bearer",
-              "bearer": [{ "key": "token", "value": "esto-no-es-un-jwt", "type": "string" }]
+              "bearer": [{ "key": "token", "value": "{{tokenMalFormado}}", "type": "string" }]
             },
             "method": "GET",
             "header": [],
