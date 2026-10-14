@@ -1,5 +1,7 @@
 # Usar con la extensión "REST Client" de VS Code (o copiar como curl)
 @base = http://localhost:3000/api
+@email = ana@test.com
+@password = supersecreta
 
 ### Health
 GET {{base}}/health
@@ -7,29 +9,75 @@ GET {{base}}/health
 ### Health de la base de datos
 GET {{base}}/health/db
 
-### Listar tareas
+### Listar tareas sin token (401)
 GET {{base}}/tasks
+
+### Registrar usuario (201; si se repite da 409)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{ "email": "{{email}}", "password": "{{password}}" }
+
+### Login con contraseña incorrecta (401)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "{{email}}", "password": "incorrecta" }
+
+### Login (200): el token queda en la variable token
+# @name login
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "email": "{{email}}", "password": "{{password}}" }
+
+###
+@token = {{login.response.body.accessToken}}
+
+### Usuario actual
+GET {{base}}/auth/me
+Authorization: Bearer {{token}}
+
+### Listar tareas (autenticado)
+GET {{base}}/tasks
+Authorization: Bearer {{token}}
 
 ### Obtener una tarea
 GET {{base}}/tasks/1
+Authorization: Bearer {{token}}
 
 ### Crear tarea
 POST {{base}}/tasks
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 { "title": "Preparar la demo", "description": "Ensayar cada paso" }
 
 ### Crear tarea inválida (400)
 POST {{base}}/tasks
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 { "title": "" }
 
 ### Marcar como hecha
 PATCH {{base}}/tasks/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 { "done": true }
 
-### Eliminar
+### Actualizar sin campos (400)
+PATCH {{base}}/tasks/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### Id inválido (400)
+GET {{base}}/tasks/abc
+Authorization: Bearer {{token}}
+
+### Eliminar (204; si se repite da 404)
 DELETE {{base}}/tasks/1
+Authorization: Bearer {{token}}
